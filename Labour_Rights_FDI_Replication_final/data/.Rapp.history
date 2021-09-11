@@ -1,0 +1,3 @@
+load("/Users/ge38kad/Documents/github/Labour_Rights_FDI/data/mastertablev10.Rdata")
+load("/Users/ge38kad/Documents/github/Labour_Rights_FDI/data/df_main.Rda")
+load("/Users/ge38kad/Documents/github/Labour_Rights_FDI/data/df_oecd.Rda")

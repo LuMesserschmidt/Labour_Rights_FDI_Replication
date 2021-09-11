@@ -1,0 +1,571 @@
+#Regression Analysis
+  
+  # Load Data----
+rm(list=ls())
+source("R/packages.R")
+load("data/df_main.Rda")
+## Subset for Developing Countries
+df_main<- df_main[df_main$wb_dev==1,]
+
+df_main$core<- (df_main$LRI_Union_W2_5+df_main$LRI_Strike_W2_5)/2
+df_main$cash<- (df_main$LRI_Contracts +df_main$LRI_Worktime+df_main$LRI_Dismiss)/3
+
+df_main = df_main %>% group_by(country,year) %>% mutate(logGDPpc_diff = logGDPpc-Lag_logGDPpc)
+df_main = df_main %>% group_by(country) %>% mutate(Lag_logGDPpc_diff = dplyr::lag(logGDPpc_diff))
+df_main = df_main %>% group_by(country) %>% mutate(Lag2_logGDPpc_diff = dplyr::lag(Lag_logGDPpc_diff))
+df_main = df_main %>% group_by(country) %>% mutate(Lag3_logGDPpc_diff = dplyr::lag(Lag2_logGDPpc_diff))
+
+
+sort(unique(df_main$country[df_main$wb_middle==1]))
+
+
+## Main Model-----
+
+#  Time and Two Way Fixed Effects ----
+
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Core
+form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash
+form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIC
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+# LRID
+
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIW
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIU
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIS
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# CBRT_Flow
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# Core_Flow
+form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash_Flow
+form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIC_flow
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+# LRID_flow
+
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIW_flow
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIU_flow
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# LRIS_flow
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# Add PCSE to Main Model ----
+res.po1<- TFUN.NOE.CBRT.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po1,cluster="time")
+ct.time1     <- coeftest(res.po1,vcov=res.BKtime1)
+res.po1$vcov <- res.BKtime1
+
+res.po2<- TFUN.NOE.CORE.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po2,cluster="time")
+ct.time1     <- coeftest(res.po2,vcov=res.BKtime1)
+res.po2$vcov <- res.BKtime1
+
+res.po3<- TFUN.NOE.CASH.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po3,cluster="time")
+ct.time1     <- coeftest(res.po3,vcov=res.BKtime1)
+res.po3$vcov <- res.BKtime1
+
+res.po4<- TFUN.NOE.LRIC.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po4,cluster="time")
+ct.time1     <- coeftest(res.po4,vcov=res.BKtime1)
+res.po4$vcov <- res.BKtime1
+
+res.po5<- TFUN.NOE.LRID.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po5,cluster="time")
+ct.time1     <- coeftest(res.po5,vcov=res.BKtime1)
+res.po5$vcov <- res.BKtime1
+
+res.po6<- TFUN.NOE.LRIW.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po6,cluster="time")
+ct.time1     <- coeftest(res.po6,vcov=res.BKtime1)
+res.po6$vcov <- res.BKtime1
+
+res.po7<- TFUN.NOE.LRIU.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po7,cluster="time")
+ct.time1     <- coeftest(res.po7,vcov=res.BKtime1)
+res.po7$vcov <- res.BKtime1
+
+res.po8<- TFUN.NOE.LRIS.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po8,cluster="time")
+ct.time1     <- coeftest(res.po8,vcov=res.BKtime1)
+res.po8$vcov <- res.BKtime1
+
+
+res.po9<- TFUN.NOE.CBRT.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po9,cluster="time")
+ct.time1     <- coeftest(res.po9,vcov=res.BKtime1)
+res.po9$vcov <- res.BKtime1
+
+res.po10<- TFUN.NOE.CORE.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po10,cluster="time")
+ct.time1     <- coeftest(res.po10,vcov=res.BKtime1)
+res.po10$vcov <- res.BKtime1
+
+res.po11<- TFUN.NOE.CASH.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po11,cluster="time")
+ct.time1     <- coeftest(res.po11,vcov=res.BKtime1)
+res.po11$vcov <- res.BKtime1
+
+res.po12<- TFUN.NOE.LRIC.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po12,cluster="time")
+ct.time1     <- coeftest(res.po12,vcov=res.BKtime1)
+res.po12$vcov <- res.BKtime1
+
+res.po13<- TFUN.NOE.LRID.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po13,cluster="time")
+ct.time1     <- coeftest(res.po13,vcov=res.BKtime1)
+res.po13$vcov <- res.BKtime1
+
+res.po14<- TFUN.NOE.LRIW.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po14,cluster="time")
+ct.time1     <- coeftest(res.po14,vcov=res.BKtime1)
+res.po14$vcov <- res.BKtime1
+
+res.po15<- TFUN.NOE.LRIU.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po15,cluster="time")
+ct.time1     <- coeftest(res.po15,vcov=res.BKtime1)
+res.po15$vcov <- res.BKtime1
+
+res.po16<- TFUN.NOE.LRIS.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po16,cluster="time")
+ct.time1     <- coeftest(res.po16,vcov=res.BKtime1)
+res.po16$vcov <- res.BKtime1
+
+
+
+ff1<-res.po1
+ff2<-res.po2
+ff3<-res.po3
+ff4<-res.po4
+ff5<-res.po5
+ff6<-res.po6
+ff7<-res.po7
+ff8<-res.po8
+ff9<-res.po9
+ff10<-res.po10
+ff11<-res.po11
+ff12<-res.po12
+ff13<-res.po13
+ff14<-res.po14
+ff15<-res.po15
+ff16<-res.po16
+
+# Print Main Model----
+stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock/GDP",
+                                "Log FDI flow/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_1.tex")
+
+stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock/GDP",
+                                "Log FDI flow/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_2.tex")
+
+stargazer(ff7,ff8,ff4,ff5,ff6,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
+          type = "latex",order=c(1:5,11,6:10,12),
+          covariate.labels = c( "Log FDI stock/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_2_stock.tex")
+
+
+stargazer(ff15,ff16,ff12,ff13,ff14,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
+          type = "latex",order=c(1:5,11,6:10,12),
+          covariate.labels = c( "Log FDI flow/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_2_flow.tex")
+
+
+#Coefficient Plot for Main Model (FIGURE 2: Coefficient Plot of FDI Flow and Stock)----
+# Coefficient Plot for Stock
+model1 <- res.po2
+model2 <- res.po3
+
+
+# Put model estimates into temporary data.frames:
+
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Outcome Rights")
+#model2Frame<-model2Frame[-c(1,3:10),]
+
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Collective Rights")
+#model1Frame<-model1Frame[-c(1,3:10),]
+
+
+# Combine these data.frames
+allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
+
+allModelFrame$indices <- allModelFrame$modelName
+allModelFrame$Variable <- as.character(allModelFrame$Variable)
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable <- as.factor(allModelFrame$Variable)
+
+allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
+# Specify the width of your confidence intervals
+interval1 <- -qnorm((1-0.9)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+# Plot 
+a <- ggplot(allModelFrame, aes(colour = indices))+  scale_color_manual(name = "",values=c("black", "red"),guide = guide_legend(nrow=2,reverse=TRUE))
+a <- a + geom_hline(yintercept = 0, colour = gray(1/2), lty = 2)
+a <- a + geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                            ymax = Coefficient + SE*interval1),
+                        lwd = 1, position = position_dodge(width = 1/2))
+a <- a + geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                             ymax = Coefficient + SE*interval2),
+                         lwd = 1/2, position = position_dodge(width = 1/2),
+                         shape = 21, fill = "WHITE")
+a <- a + coord_flip() + theme_bw()
+a<-a+labs(x = "", y = "")
+a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
+b <- a + ggtitle("Coefficient Plot for FDI Stock")
+
+CC_stock<- b + scale_y_continuous(limits=c(-0.01, 0.015))
+
+CC_stock
+ggsave(filename="viz/Coefficientplot_Cash_Core_Stock_FE.jpeg",
+       plot=b,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+
+# Coefficient Plot for Flow
+model1 <- res.po10
+model2 <- res.po11
+
+
+# Put model estimates into temporary data.frames:
+
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Outcome Rights")
+#model2Frame<-model2Frame[-c(1,3:10),]
+
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Collective Rights")
+#model1Frame<-model1Frame[-c(1,3:10),]
+
+
+# Combine these data.frames
+allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
+
+allModelFrame$indices <- allModelFrame$modelName
+allModelFrame$Variable <- as.character(allModelFrame$Variable)
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable <- as.factor(allModelFrame$Variable)
+
+allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
+# Specify the width of your confidence intervals
+interval1 <- -qnorm((1-0.9)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+# Plot 
+a <- ggplot(allModelFrame, aes(colour = indices))+  scale_color_manual(values=c("black", "red"),guide=F)
+a <- a + geom_hline(yintercept = 0, colour = gray(1/2), lty = 2)
+a <- a + geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                            ymax = Coefficient + SE*interval1),
+                        lwd = 1, position = position_dodge(width = 1/2))
+a <- a + geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                             ymax = Coefficient + SE*interval2),
+                         lwd = 1/2, position = position_dodge(width = 1/2),
+                         shape = 21, fill = "WHITE")
+
+a <- a + coord_flip() + theme_bw()
+#a <- a  + guides(fill=FALSE)
+a
+a<-a+labs(x = "", y = "")
+b <- a + ggtitle("Coefficient Plot for FDI Flow")
+CC_flow<- b + scale_y_continuous(limits=c(-0.01, 0.015))
+CC_flow
+ggsave(filename="viz/Coefficientplot_Cash_Core_Flow_FE.jpeg",
+       plot=b,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+# Coefficient Plot For Sub-Indices Stock
+model1 <- res.po4
+model2 <- res.po5
+model3 <- res.po6
+model4 <- res.po7
+model5 <- res.po8
+
+# Put model estimates into temporary data.frames:
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Contracts")
+#model1Frame<-model1Frame[-c(1,3:10),]
+
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Worktime")
+#model2Frame<-model2Frame[-c(1,3:10),]
+
+model3Frame <- data.frame(Variable = rownames(summary(model3)$coef),
+                          Coefficient = summary(model3)$coef[, 1],
+                          SE = summary(model3)$coef[, 2],
+                          modelName = "Dismissal")
+#model3Frame<-model3Frame[-c(1,3:10),]
+
+model4Frame <- data.frame(Variable = rownames(summary(model4)$coef),
+                          Coefficient = summary(model4)$coef[, 1],
+                          SE = summary(model4)$coef[, 2],
+                          modelName = "Representation")
+#model4Frame<-model4Frame[-c(1,3:10),]
+
+model5Frame <- data.frame(Variable = rownames(summary(model5)$coef),
+                          Coefficient = summary(model5)$coef[, 1],
+                          SE = summary(model5)$coef[, 2],
+                          modelName = "Industrial Action")
+#model5Frame<-model5Frame[-c(1,3:10),]
+
+# Combine these data.frames
+allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Frame,model5Frame)) 
+
+allModelFrame$indices <- allModelFrame$modelName
+allModelFrame$Variable <- as.character(allModelFrame$Variable)
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable <- as.factor(allModelFrame$Variable)
+
+allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
+# Specify the width of your confidence intervals
+interval1 <- -qnorm((1-0.9)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+# Plot 
+a <- ggplot(allModelFrame, aes(colour = indices))+  scale_color_manual(name = "",values=c("dodgerblue", "green3","mediumorchid", "orange","grey74"),guide = guide_legend(nrow=2,reverse=TRUE))
+a <- a + geom_hline(yintercept = 0, colour = gray(1/2), lty = 2)
+a <- a + geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                            ymax = Coefficient + SE*interval1),
+                        lwd = 1, position = position_dodge(width = 1/2))
+a <- a + geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                             ymax = Coefficient + SE*interval2),
+                         lwd = 1/2, position = position_dodge(width = 1/2),
+                         shape = 21, fill = "WHITE")
+
+a <- a + coord_flip() + theme_bw()
+a<-a+labs(x = "", y = "")
+b <- a + ggtitle("Coefficient Plot of FDI Stock on LRI Sub-Indices",subtitle = "including regional dummies")
+a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
+b
+CC2_stock<- a + scale_y_continuous(limits=c(-0.01, 0.015))
+
+ggsave(filename="viz/Coefficientplot_Sub_indices_Stock_FE.jpeg",
+       plot=b,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+
+# Coefficient Plot For Sub-Indices Flow
+model1 <- res.po12
+model2 <- res.po13
+model3 <- res.po14
+model4 <- res.po15
+model5 <- res.po16
+
+# Put model estimates into temporary data.frames:
+model1Frame <- data.frame(Variable = rownames(summary(model1)$coef),
+                          Coefficient = summary(model1)$coef[, 1],
+                          SE = summary(model1)$coef[, 2],
+                          modelName = "Contracts")
+#model1Frame<-model1Frame[-c(1,3:10),]
+
+model2Frame <- data.frame(Variable = rownames(summary(model2)$coef),
+                          Coefficient = summary(model2)$coef[, 1],
+                          SE = summary(model2)$coef[, 2],
+                          modelName = "Worktime")
+#model2Frame<-model2Frame[-c(1,3:10),]
+
+model3Frame <- data.frame(Variable = rownames(summary(model3)$coef),
+                          Coefficient = summary(model3)$coef[, 1],
+                          SE = summary(model3)$coef[, 2],
+                          modelName = "Dismissal")
+#model3Frame<-model3Frame[-c(1,3:10),]
+
+model4Frame <- data.frame(Variable = rownames(summary(model4)$coef),
+                          Coefficient = summary(model4)$coef[, 1],
+                          SE = summary(model4)$coef[, 2],
+                          modelName = "Representation")
+#model4Frame<-model4Frame[-c(1,3:10),]
+
+model5Frame <- data.frame(Variable = rownames(summary(model5)$coef),
+                          Coefficient = summary(model5)$coef[, 1],
+                          SE = summary(model5)$coef[, 2],
+                          modelName = "Industrial Action")
+#model5Frame<-model5Frame[-c(1,3:10),]
+
+# Combine these data.frames
+allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Frame,model5Frame)) 
+
+allModelFrame$indices <- allModelFrame$modelName
+allModelFrame$Variable <- as.character(allModelFrame$Variable)
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable <- as.factor(allModelFrame$Variable)
+
+allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
+# Specify the width of your confidence intervals
+interval1 <- -qnorm((1-0.9)/2)  # 90% multiplier
+interval2 <- -qnorm((1-0.95)/2)  # 95% multiplier
+
+# Plot 
+a <- ggplot(allModelFrame, aes(colour = indices))+  scale_color_manual(values=c("dodgerblue", "green3","mediumorchid", "orange","grey74"),guide=F)
+a <- a + geom_hline(yintercept = 0, colour = gray(1/2), lty = 2)
+a <- a + geom_linerange(aes(x = Variable, ymin = Coefficient - SE*interval1,
+                            ymax = Coefficient + SE*interval1),
+                        lwd = 1, position = position_dodge(width = 1/2))
+a <- a + geom_pointrange(aes(x = Variable, y = Coefficient, ymin = Coefficient - SE*interval2,
+                             ymax = Coefficient + SE*interval2),
+                         lwd = 1/2, position = position_dodge(width = 1/2),
+                         shape = 21, fill = "WHITE")
+
+a <- a + coord_flip() + theme_bw()
+a<-a+labs(x = "", y = "")
+b <- a + ggtitle("Coefficient Plot of FDI Flow on LRI Sub-Indices",subtitle = "including regional dummies")
+b
+CC2_flow<- a + scale_y_continuous(limits=c(-0.01, 0.015))
+ggsave(filename="viz/Coefficientplot_Sub_indices_Flow_FE.jpeg",
+       plot=b,
+       pointsize = 24, 
+       width = 18 ,
+       height = 10,
+       scale = 0.5,
+       dpi = 800)
+
+library(lubridate)
+library(cowplot) # 1.0.0
+library(egg) # 0.4.5
+library(ggpubr)
+fin<- ggarrange(CC_flow,CC2_flow,
+                CC_stock,CC2_stock,heights = c(1, 1.3),
+                ncol = 2, nrow = 2)
+fin
+ggsave(filename="viz/Coefficientplot_all_FE.jpeg",
+       plot=fin,
+       pointsize = 24, 
+       width = 15,
+       height = 14,
+       scale = 0.5,
+       dpi = 800)
