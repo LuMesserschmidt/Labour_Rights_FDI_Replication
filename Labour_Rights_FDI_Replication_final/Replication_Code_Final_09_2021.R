@@ -486,8 +486,8 @@ f1<- ggplot(df_descriptive_3.3, aes(x=LRI_Cash, y=LRI_Core,shape=wb_region))+
   geom_point()+
   ggtitle("Scatterplot Outcome vs. Collective Rights (by region)")+
   scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f1<-f1+labs(shape='Region') 
 f1<- f1 + theme(legend.position = "bottom")
@@ -499,8 +499,8 @@ f2<- ggplot(df_descriptive_3.3, aes(x=LRI_Cash, y=LRI_Core,color=wb_region))+
   geom_point()+
   ggtitle("By Region")+
   scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f2<-f2+labs(color='Region') 
 f2<- f2 + theme(legend.position = "right")
@@ -513,8 +513,8 @@ f3<- ggplot(df_descriptive_1, aes(x=LRI_Cash, y=LRI_Core))+
   geom_point()+
   ggtitle("Overall")+
   #scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f3<-f3+labs(color='Region') 
 f3<- f3 + theme(legend.position = "bottom")
