@@ -11,15 +11,21 @@ JEL codes: G38, J08, J50, J80, K31, K38
 
 This replication data contains all necessary data and code to reproduce our findings. 
 
-
-We thank Simon Deakin from the Centre for Business Research at Cambridge University for providing and explaining the raw data. 
-
-
+To construct our dependent variable, we use the Labour Regulation Index (LRI) database from the Centre for Business Research at Cambridge University. The data can be found at: https://www.repository.cam.ac.uk/handle/1810/263766 (accessed 02 March 2020). The codings are based on laws, relevant court decisions (including statutory law and case law), and also include administrative regulation and collective agreements whenever they are widely binding and serve as ‘functional equivalents’ to statutes or court decisions. 
 
 
 Acknowledgements:
-We thank Simon Deakin from the Centre for Business Research at Cambridge University for providing and explaining the raw data. The data can be found at: https://www.repository.cam.ac.uk/handle/1810/263766 (accessed 02 March 2020).}
+We thank Simon Deakin from the Centre for Business Research at Cambridge University for providing and explaining the raw data. 
+
+We also would like to thank Rod Abouharb, Tim  Büthe, Cindy Cheng, Josepha Hoppe, Tobias Rommel, Marcel Schliebs, Krishna Vadlamannati as well as workshop participants at the Hochschule für Politik München IR  Research  Group, the Conflict \& Change Group at UCL, the APSA Annual Meeting 2020, the Swiss Political Science Association Conference 2020, and the anonymous reviewers of this paper for valuable comments.
 
 
-We  also would  like  to  thank Tim  Büthe, Cindy Cheng, Tobias Rommel,XXX as well as workshop participants at the Hochschule für  Politik  München  IR  Research  Group,  the  APSA Annual Meeting 2020,  the  Swiss  Political  Science  Association,  and  the  University  of  Nottingham  for  valuable  comments.
+Cite the work: 
+
+Please cite the paper and the outcome & cash labour rights as:
+Messerschmidt, L., & Janz, N. (2020). Unravelling the'race to the bottom'argument: How does FDI affect different types of labour rights? (No. 05). TUM School of Governance at the Technical University of Munich.
+
+Please cite the raw data as:
+
+Adams, Z., Bastani, P., Bishop, L., & Deakin, S. (2017). The CBR-LRI Dataset: Methods, Prop- erties & Potential of Leximetric Coding of Labour Laws. International Journal of Comparative Labour Law and Industrial Relations. (Available at https://www.repository.cam.ac.uk/ handle/1810/262929)
 
