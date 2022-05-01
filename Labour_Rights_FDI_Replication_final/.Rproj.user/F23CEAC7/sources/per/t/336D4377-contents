@@ -1,10 +1,11 @@
-# Title: Unravelling the ‘race to the bottom’ argument:  How does FDIaffect different types of labour rights?
+# Title: Unravelling the ‘race to the bottom’ argument:  How does FDI affect different types of labour rights?
 # Authors: Nicole Janz, Luca Messerschmidt
-# Date: 09/05/2021
-
+# Date: 01/05/2022
+ 
 # Necessary Files
-# mastertablev10.RData (contains raw data from WorldBank)
-# df_oecd (contains OECD data on FDI)
+# controls.Rdata (contains raw data from WorldBank
+# LRI (contains raw data about Labour Rights)
+# FDI Data from UNCTAD
 
 # Packages: 
 #library(tidyverse)
@@ -22,10 +23,10 @@
 #library(pwr)
 
 
---------------
+#--------------
   #R Datamanagement
   
-  --------------
+#--------------
   
   # Load Packages ----
 
@@ -33,7 +34,7 @@
 rm(list=ls())
 
 source("R/packages.R")
-
+source("R/Important-functions.R")
 
 # Lag Functions ----
 lagpanel <- function(x,c,t,lagnum) {
@@ -86,11 +87,11 @@ my.lag.vars.list <- function(L,cols){ ## L is a list of matrices, cols the colum
 
 
 # Load Raw Data----
-load("data/mastertablev10.Rdata")
 
-df<- mastertablev10
+## Load Labour Rights Data ----
+load("data/LRI.Rdata")
 
-names(df)
+df <- LRI
 
 # Weighting Union Indicator (see paper)----
 
@@ -150,24 +151,209 @@ df$LRI_Union_W3_5<-normalize(df$LRI_Union_W3_5, method = "range", range = c(0, 1
 df$LRI_Strike_W3_5<-normalize(df$LRI_Strike_W3_5, method = "range", range = c(0, 1))
 df$LRI_Total_W3_5<-normalize(df$LRI_Total_W3_5, method = "range", range = c(0, 1))
 
+LRI <- df[,-c(4:43)]
 
 
 
-# Add logged OECD Sector FDI----
-load("data/df_oecd.Rda")
-df<- merge(df,df_oecd, by=c("country", "year"))
-names(df)
 
-tobeused  <- c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-               "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","CIRI_WORKER","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-               "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log","log_UN_FDI_flow_pgdp") #these are the original logged FDI/GDP variables without any lag
+## Load Controls ----
 
-tobelagged <- c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log","log_UN_FDI_flow_pgdp") #these are the original logged FDI/GDP variables without any lag
+load("data/controls.Rdata")
 
 
-df_main<- df[,tobeused]
+## Load and manage FDI data -----
+
+
+# UNCTAD - FDI flow (in Millions of US $) - converted below####
+###do all of below or load: UNF2.Rdata and proceed with >make UNF3 >Merge 
+#DONE: first delete first rows with extra data in csv 
+#DONE: delete weird signs in csv $ECONOMY manually: every time I load in the csv again, it will give a new! number. Would have to change mapping vector every time I recreate master. Use simple find-replace in csv for: Cote d'Ivoire, Curacao | #find and replace with "-" (to keep 2x separate)!: Indonesia (-2002),Ethiopia (-1991),Sudan (-2011) (they are in mapp.v.now)
+UNF <- read.csv("data/unctad_inw_fdi_flow.csv",header=TRUE, na.strings=c("..","_","","***"))
+dim(UNF)                                               # 11168     6
+# delete blanks before country name and write those in new country column
+UNF$"ECONOMY2" <- sub(" *","",as.character(UNF[,1]))
+wb_codeUNF <- mappingVector[as.character(UNF$ECONOMY2)]
+length(unique(wb_codeUNF)) #207
+foo <- which(!(UNF$ECONOMY2 %in% names(mappingVector))) #checking which countries are not mapped (see if they should be mapped)
+unique(UNF$ECONOMY2[foo])
+wb_codeUNF1<- wb_codeUNF[!is.na(wb_codeUNF)]             #delete where wb_code was NA
+length(unique(wb_codeUNF1))                            #206
+UNF$"wb_code" <- wb_codeUNF                            #kommen einige NA's rein
+UNF1 <- UNF[UNF[,"wb_code"]%in%wb_codeUNF1,]
+unique(UNF$wb_code)                                    # (incl NA)
+unique(UNF1$wb_code)                                   # (no NA left)
+UNF1$"index"   <- paste(UNF1$"wb_code",UNF1$"YEAR",sep="-")    
+a <- duplicated(UNF1$index)                            #check duplicates
+which(a)     
+unique(UNF1$ECONOMY[a]) #Czechoslovakia, Ethiopia (-1991),Germany, Federal Republic of,Indonesia (-2002),Sudan (-2011),Union of Soviet Socialist Republics
+UNF1$ECONOMY2 <- as.factor(UNF1$ECONOMY2)
+#delete duplicates (where cells are empty)
+e <- which(UNF1$ECONOMY2=="Czechoslovakia" & UNF1$YEAR %in% 1980:1989)
+e                                                     
+f <- which(UNF1$ECONOMY2=="Czechoslovakia" & UNF1$YEAR %in% 1993:2011)
+f                                                    
+g <- which(UNF1$ECONOMY2=="Czech Republic" & UNF1$YEAR %in% 1980:1992)
+g                                                    
+h <- which(UNF1$ECONOMY2=="Ethiopia" & UNF1$YEAR %in% 1980:1991)
+h                                                     
+i <- which(UNF1$ECONOMY2=="Ethiopia (-1991)" & UNF1$YEAR %in% 1992:2011)
+i                                                    
+j <- which(UNF1$ECONOMY2=="Germany" & UNF1$YEAR %in% 1980:1989)
+j
+k <- which(UNF1$ECONOMY2=="Germany, Federal Republic of" & UNF1$YEAR %in% 1990:2011)
+k                                                     
+l <- which(UNF1$ECONOMY2=="Indonesia (-2002)" & UNF1$YEAR %in% 2003:2011)
+l                                                    
+m <- which(UNF1$ECONOMY2=="Indonesia" & UNF1$YEAR %in% 1980:2002)
+m                                                     
+n <- which(UNF1$ECONOMY2=="Sudan" & UNF1$YEAR %in% 1980:2011)
+n                                                     
+o <- which(UNF1$ECONOMY2=="Russian Federation" & UNF1$YEAR %in% 1980:1991)
+o                                                     #4993 4994 4995 4996 4997 4998 4999 5000 5001 5002 5003 5004
+o1 <- which(UNF1$ECONOMY2=="Union of Soviet Socialist Republics" & UNF1$YEAR %in% 1992:2011)
+o1 
+p <-  which(UNF1$ECONOMY2=="Yemen" & UNF1$YEAR %in% 1980:1989)
+p1 <-  which(UNF1$ECONOMY2=="Yemen, Arab Republic" & UNF1$YEAR %in% 1990:2011)
+dim(UNF1) #6816   9
+UNF2 <- UNF1[-c(e,f,g,h,i,j,k,l,m,n,o,o1,p,p1),]                          
+dim(UNF2) #6582    9
+#check if duplicates are now gone
+a1 <- duplicated(UNF2$index)                          
+unique(UNF2$ECONOMY[a1])
+which(a1) #integer(0)
+oldcols <- colnames(UNF2)         
+colnames(UNF2)[oldcols=="US.Dollars.at.current.prices.and.current.exchange.rates.in.millions"]             <- "UN_FDI_flow"
+colnames(UNF2)[oldcols=="US.Dollars.at.current.prices.and.current.exchange.rates.per.capita"]             <- "UN_FDI_flow_pc" 
+colnames(UNF2)[oldcols=="Percentage.of.Gross.Domestic.Product"]             <- "UN_FDI_flow_pgdp" 
+#Millions of Dollars into Dollar (Oct 27, 2013)
+UNF2$"UN_FDI_flow"                <- UNF2$UN_FDI_flow*(10^6)
+#save UNF2 so it can be loaded to transform to UNF3 and merge
+library(plm)
+UNF2.pd <- plm.data(UNF2,index=c("ECONOMY2","YEAR"))
+UNF2 <- UNF2.pd
+
+#UNCTAD FDI STOCK in Mio of $ - converted below####
+#DONE country name preparation like in flow in csv
+###do all of below or load: UNST2.Rdata and proceed with >make UNST3 >Merge
+UNST <- read.csv("data/unctad_inw_fdi_stock.csv",header=TRUE, na.strings=c("..","_","","***"))
+dim(UNST) #7616    6
+UNST$"ECONOMY2" <- sub(" *","",as.character(UNST[,1]))
+wb_codeUNST <- mappingVector[as.character(UNST$ECONOMY2)]
+length(unique(wb_codeUNST)) #206
+foo <- which(!(UNST$ECONOMY2 %in% names(mappingVector))) #checking which countries are not mapped (see if they should be mapped)
+unique(UNST$ECONOMY2[foo])
+wb_codeUNST1<- wb_codeUNST[!is.na(wb_codeUNST)]             #delete where wb_code was NA
+length(unique(wb_codeUNST1))                            #206
+UNST$"wb_code" <- wb_codeUNST                            #kommen einige NA's rein
+UNST1 <- UNST[UNST[,"wb_code"]%in%wb_codeUNST1,]
+unique(UNST$wb_code)                                    # (incl NA)
+unique(UNST1$wb_code)                                   # (no NA left)
+UNST1$"index"   <- paste(UNST1$"wb_code",UNST1$"YEAR",sep="-")    
+a <- duplicated(UNST1$index)                            #check duplicates
+which(a)     
+unique(UNST1$ECONOMY[a])
+UNST1$ECONOMY2 <- as.factor(UNST1$ECONOMY2)
+#delete duplicates (where cells are empty)
+est <- which(UNST1$ECONOMY2=="Czechoslovakia" & UNST1$YEAR %in% 1980:1989)
+est                                                     
+fst <- which(UNST1$ECONOMY2=="Czechoslovakia" & UNST1$YEAR %in% 1993:2011)
+fst                                                    
+gst <- which(UNST1$ECONOMY2=="Czech Republic" & UNST1$YEAR %in% 1980:1992)
+gst                                                    
+hst <- which(UNST1$ECONOMY2=="Ethiopia" & UNST1$YEAR %in% 1980:1991)
+hst                                                     
+ist <- which(UNST1$ECONOMY2=="Ethiopia (-1991)" & UNST1$YEAR %in% 1992:2011)
+ist                                                    
+jst <- which(UNST1$ECONOMY2=="Germany" & UNST1$YEAR %in% 1980:1989)
+jst
+kst <- which(UNST1$ECONOMY2=="Germany, Federal Republic of" & UNST1$YEAR %in% 1990:2011)
+kst                                                     
+lst <- which(UNST1$ECONOMY2=="Indonesia (-2002)" & UNST1$YEAR %in% 2003:2011)
+lst                                                    
+mst <- which(UNST1$ECONOMY2=="Indonesia" & UNST1$YEAR %in% 1980:2002)
+mst                                                     
+nst <- which(UNST1$ECONOMY2=="Sudan" & UNST1$YEAR %in% 1980:2011)
+nst                                                     
+ost <- which(UNST1$ECONOMY2=="Russian Federation" & UNST1$YEAR %in% 1980:1991)
+ost                                                     
+o1st <- which(UNST1$ECONOMY2=="Union of Soviet Socialist Republics" & UNST1$YEAR %in% 1992:2011)
+o1st
+pst <-  which(UNST1$ECONOMY2=="Yemen" & UNST1$YEAR %in% 1980:1989)
+pst1 <-  which(UNST1$ECONOMY2=="Yemen, Arab Republic" & UNST1$YEAR %in% 1990:2011)
+dim(UNST1) #6816    9
+UNST2 <- UNST1[-c(est,fst,gst,hst,ist,jst,kst,lst,mst,nst,ost,o1st,pst,pst1),]                          
+dim(UNST2) #6582    9,
+#check if duplicates are now gone
+a1 <- duplicated(UNST2$index)                          
+unique(UNST2$ECONOMY[a1])
+which(a1) #integer(0)
+oldcols <- colnames(UNST2)         
+colnames(UNST2)[oldcols=="US.Dollars.at.current.prices.and.current.exchange.rates.in.millions"]             <- "UN_FDI_stock"
+colnames(UNST2)[oldcols=="US.Dollars.at.current.prices.and.current.exchange.rates.per.capita"]             <- "UN_FDI_stock_pc"
+colnames(UNST2)[oldcols=="Percentage.of.Gross.Domestic.Product"]             <- "UN_FDI_stock_pgdp"
+#Millions of Dollars into Dollar (Oct 27, 2013)
+UNST2$"UN_FDI_stock"                <- UNST2$UN_FDI_stock*(10^6)
+
+#save UNST2 so it can be loaded to transform to UNST3 and merge
+library(plm)
+UNST2.pd <- plm.data(UNST2,index=c("ECONOMY2","YEAR"))
+UNST2 <- UNST2.pd
+
+# Merge Data 
+
+UNST2 <- UNST2 %>% dplyr::select(index,UN_FDI_stock, UN_FDI_stock_pgdp,UN_FDI_stock_pc)
+UNF2 <- UNF2 %>% dplyr::select(index,UN_FDI_flow, UN_FDI_flow_pgdp,UN_FDI_flow_pc)
+UN <- left_join (UNST2,UNF2)
+
+
+# Log Data as Blanton
+
+# Values must be set to 1 where <=0 to prepare for logging
+us7 <- UN[,c(2:7)] #these are UN vars to log that are =<0
+us8 <- as.data.frame(matrix(NA,nrow=nrow(us7),ncol=ncol(us7)) ) #create empty data frame with size of us
+colnames(us8) <- colnames(us7)
+
+for(i in 1:nrow(us7)){       
+  for(j in 1:ncol(us7)){   
+    if (!is.na(us7[i,j])){         #won't work with na's             
+      if(us7[i,j] <= 0){
+        # tinylognew[i,j] <- 1   
+        us8[i,j] <- 1               # set all negative and zero values to 1 as preparation for logging
+        
+      } # end if <= 0
+      else if(us7[i,j] >0){
+        us8[i,j] <- us7[i,j]  
+      } # end if > 0
+    } # end if !is.na
+  } # end for j    
+} # end for i
+a <- colnames(us7)
+b <- paste("l_",a,sep="")    #new variable names
+colnames(us8) <- b
+
+us9 <- log(us8)
+a <- colnames(us7)
+b <- paste("log_",a,sep="")    #new variable names
+colnames(us9) <- b
+
+# step7: combine all subsets and variables back onto overall table d###
+
+UN<- cbind(
+  UN,
+  us9  
+)
+
+
+# Merge Data 
+
+df1 <- left_join(controls,UN)
+df <- left_join(df1,LRI)
+
+
+tobelagged <- c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","polity2", "confl","logtrade","logpopulation","logGDPpc","log_UN_FDI_stock","log_UN_FDI_flow", "log_UN_FDI_stock_pgdp","log_UN_FDI_flow_pgdp","log_UN_FDI_stock_pc","log_UN_FDI_flow_pc") #these are the original logged FDI/GDP variables without any lag
+
+
+df_main<- df
 
 # Including Sum and Average of LRI-CBR data  ----
 df_main_1 <- df_main %>%
@@ -267,25 +453,15 @@ df_main5 <- d5
 
 # Merge Data----
 
-df<- merge(df_main,df_main1, by=c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","CIRI_WORKER","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                                  "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services", "OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                                  "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log", "log_UN_FDI_flow_pgdp"))
+df<- left_join(df_main,df_main1)
 
-df2<- merge(df,df_main2, by=c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","CIRI_WORKER","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                              "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                              "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log", "log_UN_FDI_flow_pgdp"))
+df2<- left_join(df,df_main2)
 
-df3<- merge(df2,df_main3, by=c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","CIRI_WORKER","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                               "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                               "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log", "log_UN_FDI_flow_pgdp"))
+df3<- left_join(df2,df_main3)
 
-df4<- merge(df3,df_main4, by=c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","CIRI_WORKER","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                               "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                               "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log", "log_UN_FDI_flow_pgdp"))
+df4<- left_join(df3,df_main4)
 
-df_5<- merge(df4,df_main5, by=c("LRI_Union_W1_5", "LRI_Total_W1_5","LRI_Union_W2_5", "LRI_Total_W2_5","LRI_Union_W3", "LRI_Total_W3" ,"LRI_Strike_W1_5","LRI_Strike_W2_5","LRI_Strike_W3","LRI_Union_W3_5", "LRI_Total_W3_5","LRI_Strike_W3_5","CIRI_WORKER","country", "year", "wb_region", "oecd", "wb_low","wb_middle","wb_high","wb_dev", "Mos_labor", "Mos_labor_law", "Mos_labor_prac", "LRI_Total", "LRI_Contracts", "LRI_Worktime", "LRI_Dismiss", "LRI_Union", "LRI_Strike","lognonnegUS_fdi_totalpGDP","lognonnegUS_fdi_petrolpGDP","lognonnegUS_fdi_foodpGDP","lognonnegUS_fdi_chemicalpGDP","lognonnegUS_fdi_prim_fab_metalpGDP","lognonnegUS_fdi_machinerypGDP","lognonnegUS_fdi_electricalpGDP","lognonnegUS_fdi_transportpGDP", 
-                                "lognonnegUS_fdi_whole_tradepGDP","lognonnegUS_fdi_depositorypGDP","lognonnegUS_fdi_miningpGDP", "log_UN_FDI_stock_pgdp", "lognonnegUS_fdi_total_manufpGDP", "lognonnegUS_fdi_servicespGDP","polity2", "confl","logtrade","logpopulation","logGDPpc","log_Employment_Industry", "log_Employment_Services","OECD_FDI_PETROL_log","OECD_FDI_MANUF_total_log","OECD_FDI_food_log","OECD_FDI_textile_log","OECD_FDI_print_log","OECD_FDI_refpetrol_log","OECD_FDI_chemical_log","OECD_FDI_plastic_log","OECD_FDI_metal_log","OECD_FDI_machinery_log","OECD_FDI_comp_electronic_log","OECD_FDI_precinstruments_log","OECD_FDI_manuf_transport_log","OECD_FDI_utilities_log",
-                                "OECD_FDI_construction_log","OECD_FDI_services_log","OECD_FDI_total_traderepair_log","OECD_FDI_hotelrestaur_log","OECD_FDI_transp_log","OECD_FDI_post_tele_log","OECD_FDI_total_finance_log","OECD_FDI_real_rent_bus.act_log","OECD_FDI_rent_mach_log","OECD_FDI_prof_scient_comp_log","OECD_FDI_prof_scient_research_log","OECD_FDI_prof_scient_other_log","OECD_FDI_other_services_log","OECD_FDI_unallocated_log","OECD_FDI_TOTAL_log", "log_UN_FDI_flow_pgdp"))
+df_5<- left_join(df4,df_main5)
 
 df_main_lag<- df_5
 
@@ -297,17 +473,14 @@ df_main<-df_main_lag
 
 # Save data as df_main ----
 save(df_main,file="data/df_main.Rda")
+rm(list=ls())
 
 
-
-
-
-
---------------
+#--------------
   
   #Descriptive Statistics
   
-  --------------
+#--------------
   
   # Load packages and Data ----
 rm(list=ls())
@@ -486,8 +659,8 @@ f1<- ggplot(df_descriptive_3.3, aes(x=LRI_Cash, y=LRI_Core,shape=wb_region))+
   geom_point()+
   ggtitle("Scatterplot Outcome vs. Collective Rights (by region)")+
   scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f1<-f1+labs(shape='Region') 
 f1<- f1 + theme(legend.position = "bottom")
@@ -499,8 +672,8 @@ f2<- ggplot(df_descriptive_3.3, aes(x=LRI_Cash, y=LRI_Core,color=wb_region))+
   geom_point()+
   ggtitle("By Region")+
   scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f2<-f2+labs(color='Region') 
 f2<- f2 + theme(legend.position = "right")
@@ -513,8 +686,8 @@ f3<- ggplot(df_descriptive_1, aes(x=LRI_Cash, y=LRI_Core))+
   geom_point()+
   ggtitle("Overall")+
   #scale_linetype_manual(values=c("twodash","longdash", "solid", "12345678","dotted", "F1"),name="Region")+
-  xlab("")+
-  ylab("")+
+  xlab("Outcome Rights")+
+  ylab("Collective Rights")+
   theme_bw()
 f3<-f3+labs(color='Region') 
 f3<- f3 + theme(legend.position = "bottom")
@@ -539,36 +712,20 @@ ggsave(filename="viz/Indices_descriptive_appendix_final.jpg",
 
 # Summary Statistics (TABLE A5: Summary Statistics of Variables) ----
 
-## Of all Variables
-df_main<- df_main[df_main$wb_dev==1,]
-
-class(df_main)
-
-df_main <- as.data.frame(df_main)
-
-stats_summary<- c(df_main[,cbind("Mos_labor","Mos_labor_law", "Mos_labor_prac","LRI_Total_W2_5","LRI_Contracts", "LRI_Worktime", "LRI_Dismiss","LRI_Union_W2_5","LRI_Strike_W2_5", "log_UN_FDI_flow_pgdp","log_UN_FDI_stock_pgdp","logtrade","logGDPpc_diff", "logpopulation", "polity2","wb_region", "confl")]) 
-stats_summary <- as.data.frame(stats_summary)
-stargazer(stats_summary, type="html", float=F,covariate.labels = c("FACB","FACB de jure", "FACB Practice", "CBR-LRI Total", 
-                                                                   "CBR-LRI Contracts","CBR-LRI Worktime","CBR-LRI Dismiss","CBR-LRI Union","CBR-LRI Strike",
-                                                                   "Log UN Total FDI Flow",
-                                                                   "Log UN Total FDI Stock",
-                                                                   "Log Trade",
-                                                                   "Growth",
-                                                                   "Log Population", 
-                                                                   "Democracy", 
-                                                                   "Conflict"),
-          title = "Summary Statistics", style = "commadefault",decimal.mark=".",out="viz/summary_statistics.tex")
-
-names(df_main)
 
 ## Statistics Summary of Model
 
-df_main_summary <- na.omit(df_main[,cbind("LRI_Total_W2_5","LRI_Contracts", "LRI_Worktime", "LRI_Dismiss","LRI_Union_W2_5","LRI_Strike_W2_5","core","cash","log_UN_FDI_flow_pgdp","log_UN_FDI_stock_pgdp","logtrade","logGDPpc_diff", "logpopulation", "polity2","wb_region", "confl")]) 
+names(df_mainx)
+
+df_mainx <- as.data.frame(df_mainx)
+df_main_summary <- na.omit(df_mainx[,cbind("LRI_Total_W2_5","LRI_Contracts", "LRI_Worktime", "LRI_Dismiss","LRI_Union_W2_5","LRI_Strike_W2_5","core","cash","log_UN_FDI_flow","log_UN_FDI_stock","log_UN_FDI_flow_pgdp","log_UN_FDI_stock_pgdp","log_UN_FDI_flow_pc","log_UN_FDI_stock_pc","logtrade","logGDPpc_diff", "logpopulation", "polity2","wb_region", "confl")]) 
 df_main_summary<- as.data.frame(df_main_summary)
 
 
-stargazer(df_main_summary, type="html", float=F,covariate.labels = c("Overall Rights", "Contracts","Worktime","Dismissal","Representation","Industrial Action","Collective Rights","Outcome Rights",
+stargazer(df_main_summary, type="latex", float=F,covariate.labels = c("Overall Rights", "Contracts","Worktime","Dismissal","Representation","Industrial Action","Collective Rights","Outcome Rights",
+                                                                     "Log FDI flow","Log FDI stock",
                                                                      "Log FDI flow/GDP","Log FDI stock/GDP",
+                                                                     "Log FDI flow per Capita","Log FDI stock per Capita",
                                                                      "Log Trade",
                                                                      "Growth",
                                                                      "Log Population", 
@@ -577,40 +734,10 @@ stargazer(df_main_summary, type="html", float=F,covariate.labels = c("Overall Ri
           title = "Summary Statistics", style = "commadefault",decimal.mark=".",out="viz/summary_statistics_model.tex")
 
 
-
 # Correlation Matrix (TABLE A3: Correlation Table of Variables)----
-## Matrix 1: Correlation with other Labour Rights Measurements
+
 library(corrplot)
-names(df_main)
 
-##Subset 
-y<- c("LRI_Total_W2_5",
-      "Mos_labor",
-      "Mos_labor_law",
-      "Mos_labor_prac",
-      "LRI_Contracts", 
-      "LRI_Worktime", 
-      "LRI_Dismiss",
-      "LRI_Union_W2_5",
-      "LRI_Strike_W2_5",
-      "CIRI_WORKER",
-      "core","cash") 
-df_main_cor <- df_main[,cbind(y)]
-
-## Rename
-df_main_cor$"Overall Rights"<-df_main_cor$LRI_Total_W2_5
-df_main_cor$Contracts<-df_main_cor$LRI_Contracts
-df_main_cor$Worktime<-df_main_cor$LRI_Worktime
-df_main_cor$Dismissal<-df_main_cor$LRI_Dismiss
-df_main_cor$Representation<-df_main_cor$LRI_Union_W2_5
-df_main_cor$"Industrial Action"<-df_main_cor$LRI_Strike_W2_5
-df_main_cor$"Collective Rights"<-df_main_cor$core
-df_main_cor$"Outcome Rights"<-df_main_cor$cash
-df_main_cor$"Mosley FACB Overall"<-df_main_cor$Mos_labor
-df_main_cor$"Mosley FACB Law"<-df_main_cor$Mos_labor_law
-df_main_cor$"Mosley FACB Practice"<-df_main_cor$Mos_labor_prac
-df_main_cor$"CIRI worker rights"<-df_main_cor$CIRI_WORKER
-df_main_cor1<- df_main_cor[,-c(1:12)]
 
 ## Correlation Function (calculates p-values). Source: http://www.sthda.com/english/wiki/elegant-correlation-table-using-xtable-r-package
 corstars <-function(x, method=c("pearson", "spearman"), removeTriangle=c("upper", "lower"),
@@ -656,21 +783,11 @@ corstars <-function(x, method=c("pearson", "spearman"), removeTriangle=c("upper"
     else print(xtable(Rnew), type="latex") 
   }
 } 
-A<-corstars(df_main_cor)
-
 library(xtable)
-xtable(A)
 
-## Control with cor() function 
-M <- cor(df_main_cor1,use="pairwise.complete.obs")
-
-C<-head(round(M,2))
-
-M
-C
 
 #Matrix 2: All variables used in the main models (pairwise complete correlation)
-df_main_cor <- na.omit(df_main[,cbind("LRI_Total_W2_5","LRI_Contracts", "LRI_Worktime", "LRI_Dismiss","LRI_Union_W2_5","LRI_Strike_W2_5","core","cash","log_UN_FDI_stock_pgdp","logtrade","logGDPpc_diff", "logpopulation", "polity2","confl")]) 
+df_main_cor <- na.omit(df_mainx[,cbind("LRI_Total_W2_5","LRI_Contracts", "LRI_Worktime", "LRI_Dismiss","LRI_Union_W2_5","LRI_Strike_W2_5","core","cash","log_UN_FDI_flow","log_UN_FDI_stock","log_UN_FDI_flow_pgdp","log_UN_FDI_stock_pgdp","log_UN_FDI_flow_pc","log_UN_FDI_stock_pc","logtrade","logGDPpc_diff", "logpopulation", "polity2","confl")]) 
 
 ##Rename
 df_main_cor$"Overall Rights"<-df_main_cor$LRI_Total_W2_5
@@ -681,17 +798,21 @@ df_main_cor$Representation<-df_main_cor$LRI_Union_W2_5
 df_main_cor$"Industrial Action"<-df_main_cor$LRI_Strike_W2_5
 df_main_cor$"Collective Rights"<-df_main_cor$core
 df_main_cor$"Outcome Rights"<-df_main_cor$cash
-df_main_cor$"FDI stock/GDP"<-df_main_cor$log_UN_FDI_stock_pgdp
-df_main_cor$"FDI flow/GDP"<-df_main_cor$log_UN_FDI_flow_pgdp
+df_main_cor$"Log FDI stock"<-df_main_cor$log_UN_FDI_stock
+df_main_cor$"Log FDI flow"<-df_main_cor$log_UN_FDI_flow
+df_main_cor$"Log FDI stock/GDP"<-df_main_cor$log_UN_FDI_stock_pgdp
+df_main_cor$"Log FDI flow/GDP"<-df_main_cor$log_UN_FDI_flow_pgdp
+df_main_cor$"Log FDI stock per Capita"<-df_main_cor$log_UN_FDI_stock_pc
+df_main_cor$"Log FDI flow per Capita"<-df_main_cor$log_UN_FDI_flow_pc
 df_main_cor$"Trade"<-df_main_cor$logtrade
 df_main_cor$"Growth"<-df_main_cor$logGDPpc_diff
 df_main_cor$"Population"<-df_main_cor$logpopulation
 df_main_cor$"Democracy"<-df_main_cor$polity2
 df_main_cor$Conflict<-df_main_cor$confl
 
-df_main_cor2<- df_main_cor[,-c(1:14)]
+df_main_cor2<- df_main_cor[,-c(1:19)]
 
-
+names(df_main_cor)
 ## Calculate Correlation
 A<-corstars(df_main_cor2)
 
@@ -700,14 +821,14 @@ xtable(A)
 
 M <- cor(df_main_cor2,use="pairwise.complete.obs")
 
-C<-head(round(M,2))
+C<-head(round(M,2)) # Copy Output to manuscript
+rm(list=ls())
 
-
---------------
+#--------------
   
   #Regression Analysis
   
-  --------------
+#--------------
   
   # Load Data----
 rm(list=ls())
@@ -727,17 +848,16 @@ df_main = df_main %>% group_by(country) %>% mutate(Lag3_logGDPpc_diff = dplyr::l
 
 #Tests
 ## Hausman
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp 
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pc
 fixed <- plm(form1 ,model="within",index=c("country","year"),data=df_main)
 random <- plm(form1 ,model="random",index=c("country","year"),data=df_main)
 pooled <- plm(form1 ,model="pooling",index=c("country","year"),data=df_main)
-
 phtest(fixed,random)
-## Result: p<0,05 FE and NOT RE
+
 
 ## Testing for time FE: Lagrange Multiplier Test - time effects (Breusch-Pagan) for unbalanced panels
 
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + factor(year)
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pc + factor(year)
 fixed.time <- plm(form1 ,model="within",index=c("country","year"),data=df_main)
 pFtest(fixed.time, fixed)
 plmtest(fixed, c("time"), type=("bp"))
@@ -747,37 +867,14 @@ plmtest(fixed, c("time"), type=("bp"))
 plmtest(pooled, type=c("bp"))
 ## Better use random effects
 
-# Testing for serial correlation
-
-pbgtest(fixed)
-## Serial Correlation Exists
-
-# Dickey-Fuller Test for stochastic trends
-Panel.set <- plm.data(df_main, index = c("country", "year"))
-
-library(tseries)
-adf.test(Panel.set$y, k=2)
-
-## Unit roots present --> Better use FD model
-
 # Testing for heteroskedasticity
 
 library(lmtest)
 form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp +factor(country)
 bptest(form1, data = df_main, studentize=F)
 ## Panel Corrected Standard Errors needed! 
-## vcovHC– function: "arellano" - both heteroskedasticityand serial correlation. Recommended for fixed effects
-
-
+## vcovHC– function recommended for fixed effects
 ## Heteroskedasticity Detected --> Robust Covariance Matrix needed
-
-## Difference accross countries: simple OLS not appropriate
-
-# Tests for Poolability
-
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade + Lag_logGDPpc + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
-znp <- pvcm(form1 ,model="within",data=df_main)
-zplm <- plm(form1 ,model="within",data=df_main)
 
 ## Main Model-----
 
@@ -785,73 +882,73 @@ zplm <- plm(form1 ,model="within",data=df_main)
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
@@ -963,8 +1060,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -984,8 +1081,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -1005,7 +1102,7 @@ stargazer(ff7,ff8,ff4,ff5,ff6,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:5,11,6:10,12),
-          covariate.labels = c( "Log FDI stock/GDP",
+          covariate.labels = c( "Log FDI stock",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -1026,7 +1123,7 @@ stargazer(ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:5,11,6:10,12),
-          covariate.labels = c( "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -1067,7 +1164,7 @@ allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1090,7 +1187,7 @@ a<-a+labs(x = "", y = "")
 a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
 b <- a + ggtitle("Coefficient Plot for FDI Stock")
 
-CC_stock<- b + scale_y_continuous(limits=c(-0.01, 0.015))
+CC_stock<- b 
 
 CC_stock
 ggsave(filename="viz/Coefficientplot_Cash_Core_Stock_FE.jpeg",
@@ -1127,7 +1224,7 @@ allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1151,7 +1248,7 @@ a <- a + coord_flip() + theme_bw()
 a
 a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot for FDI Flow")
-CC_flow<- b + scale_y_continuous(limits=c(-0.01, 0.015))
+CC_flow<- b 
 CC_flow
 ggsave(filename="viz/Coefficientplot_Cash_Core_Flow_FE.jpeg",
        plot=b,
@@ -1204,7 +1301,7 @@ allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Fr
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1228,7 +1325,7 @@ a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot of FDI Stock on LRI Sub-Indices",subtitle = "including regional dummies")
 a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
 b
-CC2_stock<- a + scale_y_continuous(limits=c(-0.01, 0.015))
+CC2_stock<- a 
 
 ggsave(filename="viz/Coefficientplot_Sub_indices_Stock_FE.jpeg",
        plot=b,
@@ -1282,7 +1379,7 @@ allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Fr
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1305,7 +1402,7 @@ a <- a + coord_flip() + theme_bw()
 a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot of FDI Flow on LRI Sub-Indices",subtitle = "including regional dummies")
 b
-CC2_flow<- a + scale_y_continuous(limits=c(-0.01, 0.015))
+CC2_flow<- a 
 ggsave(filename="viz/Coefficientplot_Sub_indices_Flow_FE.jpeg",
        plot=b,
        pointsize = 24, 
@@ -1337,75 +1434,75 @@ ggsave(filename="viz/Coefficientplot_all_FE.jpeg",
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Main Model: Pooled OLS (TABLE2: FDI stock and flow, TABLE3: Five Categories) ----
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
@@ -1517,8 +1614,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -1538,8 +1635,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -1579,7 +1676,7 @@ allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1601,7 +1698,7 @@ a <- a + coord_flip() + theme_bw()
 a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot for FDI Stock")
 a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
-CC_stock<- a + scale_y_continuous(limits=c(-0.01, 0.01))
+CC_stock<- a 
 
 CC_stock
 ggsave(filename="viz/Coefficientplot_Cash_Core_Stock_2FE.jpeg",
@@ -1638,7 +1735,7 @@ allModelFrame <- data.frame(rbind(model2Frame, model1Frame))  # etc.
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1662,7 +1759,7 @@ a <- a + coord_flip() + theme_bw()
 a
 a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot for FDI Flow")
-CC_flow<- a + scale_y_continuous(limits=c(-0.01, 0.01))
+CC_flow<- a 
 CC_flow
 ggsave(filename="viz/Coefficientplot_Cash_Core_Flow_2FE.jpeg",
        plot=b,
@@ -1715,7 +1812,7 @@ allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Fr
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_stock"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1739,7 +1836,7 @@ a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot of FDI Stock on LRI Sub-Indices",subtitle = "including regional dummies")
 a<-a + scale_fill_continuous(guide = "colorbar") + theme(legend.position="bottom",legend.direction="vertical")
 b
-CC2_stock<- a + scale_y_continuous(limits=c(-0.01, 0.01))
+CC2_stock<- a 
 
 ggsave(filename="viz/Coefficientplot_Sub_indices_Stock_2FE.jpeg",
        plot=b,
@@ -1793,7 +1890,7 @@ allModelFrame <- data.frame(rbind(model1Frame, model2Frame, model3Frame,model4Fr
 
 allModelFrame$indices <- allModelFrame$modelName
 allModelFrame$Variable <- as.character(allModelFrame$Variable)
-allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow_pgdp"] <- " "
+allModelFrame$Variable[allModelFrame$Variable=="Lag_log_UN_FDI_flow"] <- " "
 allModelFrame$Variable <- as.factor(allModelFrame$Variable)
 
 allModelFrame<-allModelFrame[allModelFrame$Variable==" ",]
@@ -1816,7 +1913,7 @@ a <- a + coord_flip() + theme_bw()
 a<-a+labs(x = "", y = "")
 b <- a + ggtitle("Coefficient Plot of FDI Flow on LRI Sub-Indices",subtitle = "including regional dummies")
 b
-CC2_flow<- a + scale_y_continuous(limits=c(-0.01, 0.01))
+CC2_flow<- a 
 ggsave(filename="viz/Coefficientplot_Sub_indices_Flow_2FE.jpeg",
        plot=b,
        pointsize = 24, 
@@ -1844,11 +1941,11 @@ ggsave(filename="viz/Coefficientplot_all_2FE.jpeg",
 
 
 
---------------
+#--------------
   
   #Robustness Checks
   
-  --------------
+#--------------
   # Lag 2 Year ----
 
 
@@ -1856,75 +1953,75 @@ ggsave(filename="viz/Coefficientplot_all_2FE.jpeg",
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Main Model: Pooled OLS (TABLE2: FDI stock and flow, TABLE3: Five Categories) ----
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- core ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- cash ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- core ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- cash ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
@@ -2036,8 +2133,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2057,8 +2154,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2078,75 +2175,75 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Main Model: Pooled OLS (TABLE2: FDI stock and flow, TABLE3: Five Categories) ----
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- core ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- cash ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_stock + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- core ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- cash ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Contracts ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Dismiss ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Worktime ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Union_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_flow_pgdp + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
+form1   <- LRI_Strike_W2_5 ~ Lag2_log_UN_FDI_flow + Lag2_logtrade +Lag2_logGDPpc_diff + Lag2_logpopulation + Lag2_polity2 + wb_region + Lag2_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
@@ -2258,8 +2355,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2279,8 +2376,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2298,75 +2395,75 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
 # Lag 3 Year ----
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag2_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Main Model: Pooled OLS (TABLE2: FDI stock and flow, TABLE3: Five Categories) ----
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- core ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- cash ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- core ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- cash ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
@@ -2478,8 +2575,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2499,8 +2596,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2520,75 +2617,75 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Main Model: Pooled OLS (TABLE2: FDI stock and flow, TABLE3: Five Categories) ----
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- core ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- cash ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_stock_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_stock + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Total_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- core ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- cash ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Contracts ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Dismiss ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Worktime ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Union_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_flow_pgdp + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
+form1   <- LRI_Strike_W2_5 ~ Lag3_log_UN_FDI_flow + Lag3_logtrade +Lag3_logGDPpc_diff + Lag3_logpopulation + Lag3_polity2 + wb_region + Lag3_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
@@ -2700,8 +2797,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2721,8 +2818,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -2758,7 +2855,7 @@ df_mainZZ<-df_main
 
 Level <-cut(df_mainZZ$year,seq(1982,2010,by=5),right=F)
 id <- c("LRI_Total_W2_5","core","cash","LRI_Contracts","LRI_Dismiss","LRI_Worktime","LRI_Union_W2_5","LRI_Strike_W2_5",
-        "Lag_log_UN_FDI_stock_pgdp","Lag_log_UN_FDI_flow_pgdp","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
+        "Lag_log_UN_FDI_stock","Lag_log_UN_FDI_flow","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
 
 
 df_mainZZZ<- aggregate(df_mainZZ[id],list(df_mainZZ$country,Level),mean,na.rm=T)
@@ -2773,7 +2870,7 @@ df_mainZZZZ<- df_mainZZZ %>%
            "[1992,1997)" = 1997,
            "[1997,2002)" = 2002, 
            "[2002,2007)" = 2007
-         )) %>% select (3:19)
+         )) %>% dplyr::select (3:19)
 
 df_mainZZZZ[is.na (df_mainZZZZ)] = NA
 #df_mainZZZZ$country<-as.character(df_mainZZZZ$country)
@@ -2789,7 +2886,7 @@ df_main_5Y<- left_join(df_mainZZZZ,df_mainwb, by=c("country"))
 
 Level <-cut(df_mainZZ$year,seq(1982,2010,by=4),right=F)
 id <- c("LRI_Total_W2_5","core","cash","LRI_Contracts","LRI_Dismiss","LRI_Worktime","LRI_Union_W2_5","LRI_Strike_W2_5",
-        "Lag_log_UN_FDI_stock_pgdp","Lag_log_UN_FDI_flow_pgdp","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
+        "Lag_log_UN_FDI_stock","Lag_log_UN_FDI_flow","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
 
 
 df_mainZZZ<- aggregate(df_mainZZ[id],list(df_mainZZ$country,Level),mean,na.rm=T)
@@ -2806,7 +2903,7 @@ df_mainZZZZ<- df_mainZZZ %>%
            "[1998,2002)" = 2002,
            "[2002,2006)" = 2006,
            "[2006,2010)" = 2010
-         )) %>% select (3:19)
+         )) %>% dplyr::select (3:19)
 
 df_mainZZZZ[is.na (df_mainZZZZ)] = NA
 #df_mainZZZZ$country<-as.character(df_mainZZZZ$country)
@@ -2822,7 +2919,7 @@ df_main_4Y<- left_join(df_mainZZZZ,df_mainwb, by=c("country"))
 
 Level <-cut(df_mainZZ$year,seq(1982,2010,by=3),right=F)
 id <- c("LRI_Total_W2_5","core","cash","LRI_Contracts","LRI_Dismiss","LRI_Worktime","LRI_Union_W2_5","LRI_Strike_W2_5",
-        "Lag_log_UN_FDI_stock_pgdp","Lag_log_UN_FDI_flow_pgdp","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
+        "Lag_log_UN_FDI_stock","Lag_log_UN_FDI_flow","Lag_logtrade","Lag_logGDPpc_diff","Lag_logpopulation","Lag_polity2","Lag_confl")
 
 
 df_mainZZZ<- aggregate(df_mainZZ[id],list(df_mainZZ$country,Level),mean,na.rm=T)
@@ -2841,83 +2938,84 @@ df_mainZZZZ<- df_mainZZZ %>%
            "[2000,2003)" = 2003,
            "[2003,2006)" = 2006,
            "[2006,2009)" = 2009
-         )) %>% select (3:19)
+         )) %>% dplyr::select (3:19)
 
 df_mainZZZZ[is.na (df_mainZZZZ)] = NA
 #df_mainZZZZ$country<-as.character(df_mainZZZZ$country)
 
-df_mainwb<-df_main[,c(2,16)] 
+df_mainwb<-df_main[,c(2,4)] 
 #df_mainwb$country<-as.character(df_mainwb$country)
 
 df_mainwb<- distinct(df_mainwb) 
 
 df_main_3Y<- left_join(df_mainZZZZ,df_mainwb, by=c("country"))
 
+
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main_3Y)
 
 
@@ -3028,8 +3126,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3049,8 +3147,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3082,73 +3180,73 @@ df_main = df_main %>% group_by(country) %>% mutate(Lag_logGDPpc_diff = dplyr::la
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
 
 
@@ -3260,8 +3358,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3281,8 +3379,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3316,28 +3414,28 @@ df_main = df_main %>% group_by(country) %>% mutate(Lag_logGDPpc_diff = dplyr::la
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl + Lag_Mos_labor_law
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl + Lag_Mos_labor_law
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_cash
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_cash
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl+ Lag_core 
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl+ Lag_core 
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_Mos_labor_law 
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_Mos_labor_law 
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +  Lag_cash
+form1   <- core ~Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +  Lag_cash
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_core 
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_core 
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
@@ -3384,28 +3482,28 @@ ff11<-res.po11
 
 
 # CBRT
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl + Lag_Mos_labor_law
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl + Lag_Mos_labor_law
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_cash
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_cash
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl+ Lag_core 
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl+ Lag_core 
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # CBRT_Flow
-form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_Mos_labor_law 
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_Mos_labor_law 
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +  Lag_cash
+form1   <- core ~Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +  Lag_cash
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_core 
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl +Lag_core 
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
 
 
@@ -3461,8 +3559,8 @@ stargazer(ff2,ff5,ff3,ff6,ff10,ff13,ff11,ff14,
           column.labels = c("FE", "2FE","FE", "2FE","FE", "2FE","FE", "2FE"),
           type = "latex",
           order=c(1,2,13,14,3:6,12,7:11,15),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Outcome Rights",
                                 "Collective Rights",
                                 "Log Trade",
@@ -3484,70 +3582,70 @@ stargazer(ff2,ff5,ff3,ff6,ff10,ff13,ff11,ff14,
 # Robust Regression: Weights = 0 -----
 
 # CBRT
-form1   <- LRI_Total ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIU
-form1   <- LRI_Union ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIS
-form1   <- LRI_Strike ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
 # CBRT_Flow
-form1   <- LRI_Total ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIU_flow
-form1   <- LRI_Union ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 # LRIS_flow
-form1   <- LRI_Strike ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- plm(form1 ,model="within",effect="time",index=c("country","year"),data=df_main)
 
 
@@ -3658,8 +3756,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3678,69 +3776,69 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
 
 
 # CBRT
-form1   <- LRI_Total ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # Core
-form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # Cash
-form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIC
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 # LRID
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIW
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIU
-form1   <- LRI_Union ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIS
-form1   <- LRI_Strike ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike ~ Lag_log_UN_FDI_stock + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1 <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 
 # CBRT_Flow
-form1   <- LRI_Total ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Total ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CBRT.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 
 # Core_Flow
-form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- core ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CORE.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # Cash_Flow
-form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- cash ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.CASH.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIC_flow
-form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Contracts ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIC.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 # LRID_flow
 
-form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Dismiss ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRID.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIW_flow
-form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Worktime ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIW.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIU_flow
-form1   <- LRI_Union ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Union ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIU.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 # LRIS_flow
-form1   <- LRI_Strike ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+form1   <- LRI_Strike ~ Lag_log_UN_FDI_flow + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
 TFUN.NOE.LRIS.l1.wb.POLS1_F <- glm(form1, data = df_main, family = quasibinomial('logit'))
 
 
@@ -3803,8 +3901,8 @@ stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
           title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
           column.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3824,8 +3922,8 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
           title = "Pooled OLS Regression on Labour Rights Indices for developing Countries with Panel Corrected SE, Lag = 1 Year",
           column.labels=c("Representation","Industrial Action","Contracts","Worktime","Dismissal","Representation","Industrial Action","Contracts","Worktime","Dismissal"),
           type = "latex",order=c(1:6,12,7:11,13),
-          covariate.labels = c( "Log FDI stock/GDP",
-                                "Log FDI flow/GDP",
+          covariate.labels = c( "Log FDI stock",
+                                "Log FDI flow",
                                 "Log Trade",
                                 "Log GDP Growth",
                                 "Log Population", 
@@ -3842,7 +3940,7 @@ stargazer(ff7,ff8,ff4,ff5,ff6,ff15,ff16,ff12,ff13,ff14,
 
 # Robustness Check: Set Flow to 0/1 dummy----
 
-df_main$Lag_FDI_flow01 <- df_main$Lag_log_UN_FDI_flow_pgdp
+df_main$Lag_FDI_flow01 <- df_main$Lag_log_UN_FDI_flow
 df_main$Lag_FDI_flow01[df_main$Lag_FDI_flow01>0 ]<-1
 
 
@@ -3946,6 +4044,412 @@ stargazer(ff4,ff5,ff6,ff7,ff8,ff9,
 
 
 
+
+#--------------
+  
+  #ROBUSTNESS: Check for FDI/GDP & FDI/Capita
+  
+#--------------
+  
+  # Load Data----
+rm(list=ls())
+source("R/packages.R")
+load("data/df_main.Rda")
+## Subset for Developing Countries
+df_main<- df_main[df_main$wb_dev==1,]
+
+df_main$core<- (df_main$LRI_Union_W2_5+df_main$LRI_Strike_W2_5)/2
+df_main$cash<- (df_main$LRI_Contracts +df_main$LRI_Worktime+df_main$LRI_Dismiss)/3
+
+df_main = df_main %>% group_by(country,year) %>% mutate(logGDPpc_diff = logGDPpc-Lag_logGDPpc)
+df_main = df_main %>% group_by(country) %>% mutate(Lag_logGDPpc_diff = dplyr::lag(logGDPpc_diff))
+
+##  Model with FDI per Capita-----
+
+#  Time and Two Way Fixed Effects ----
+
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Core
+form1   <- core ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash
+form1   <- cash ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# CBRT_Flow
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# Core_Flow
+form1   <- core ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash_Flow
+form1   <- cash ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+
+# Add PCSE to Main Model ----
+res.po1<- TFUN.NOE.CBRT.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po1,cluster="time")
+ct.time1     <- coeftest(res.po1,vcov=res.BKtime1)
+res.po1$vcov <- res.BKtime1
+
+res.po2<- TFUN.NOE.CORE.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po2,cluster="time")
+ct.time1     <- coeftest(res.po2,vcov=res.BKtime1)
+res.po2$vcov <- res.BKtime1
+
+res.po3<- TFUN.NOE.CASH.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po3,cluster="time")
+ct.time1     <- coeftest(res.po3,vcov=res.BKtime1)
+res.po3$vcov <- res.BKtime1
+
+
+
+res.po9<- TFUN.NOE.CBRT.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po9,cluster="time")
+ct.time1     <- coeftest(res.po9,vcov=res.BKtime1)
+res.po9$vcov <- res.BKtime1
+
+res.po10<- TFUN.NOE.CORE.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po10,cluster="time")
+ct.time1     <- coeftest(res.po10,vcov=res.BKtime1)
+res.po10$vcov <- res.BKtime1
+
+res.po11<- TFUN.NOE.CASH.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po11,cluster="time")
+ct.time1     <- coeftest(res.po11,vcov=res.BKtime1)
+res.po11$vcov <- res.BKtime1
+
+
+
+ff1<-res.po1
+ff2<-res.po2
+ff3<-res.po3
+ff9<-res.po9
+ff10<-res.po10
+ff11<-res.po11
+
+
+# Print Main Model----
+stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock per Capita",
+                                "Log FDI flow per Capita",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_1_PC.tex")
+
+
+#2FE####
+
+# Add Time and Two Way Fixed Effects ----
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Core
+form1   <- core ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Cash
+form1   <- cash ~ Lag_log_UN_FDI_stock_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# CBRT_Flow
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# Core_Flow
+form1   <- core ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Cash_Flow
+form1   <- cash ~ Lag_log_UN_FDI_flow_pc + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# Add PCSE to Main Model ----
+res.po1<- TFUN.NOE.CBRT.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po1,cluster="time")
+ct.time1     <- coeftest(res.po1,vcov=res.BKtime1)
+res.po1$vcov <- res.BKtime1
+
+res.po2<- TFUN.NOE.CORE.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po2,cluster="time")
+ct.time1     <- coeftest(res.po2,vcov=res.BKtime1)
+res.po2$vcov <- res.BKtime1
+
+res.po3<- TFUN.NOE.CASH.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po3,cluster="time")
+ct.time1     <- coeftest(res.po3,vcov=res.BKtime1)
+res.po3$vcov <- res.BKtime1
+
+
+res.po9<- TFUN.NOE.CBRT.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po9,cluster="time")
+ct.time1     <- coeftest(res.po9,vcov=res.BKtime1)
+res.po9$vcov <- res.BKtime1
+
+res.po10<- TFUN.NOE.CORE.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po10,cluster="time")
+ct.time1     <- coeftest(res.po10,vcov=res.BKtime1)
+res.po10$vcov <- res.BKtime1
+
+res.po11<- TFUN.NOE.CASH.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po11,cluster="time")
+ct.time1     <- coeftest(res.po11,vcov=res.BKtime1)
+res.po11$vcov <- res.BKtime1
+
+
+ff1<-res.po1
+ff2<-res.po2
+ff3<-res.po3
+ff9<-res.po9
+ff10<-res.po10
+ff11<-res.po11
+
+# Print Main Model----
+stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock per Capita",
+                                "Log FDI flow per Capita",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_2FE_1_PC.tex")
+
+
+##  Model with FDI/GDP-----
+
+#  Time and Two Way Fixed Effects ----
+
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Core
+form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash
+form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# CBRT_Flow
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+# Core_Flow
+form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+# Cash_Flow
+form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "time",index=c("country","year"),data=df_main)
+
+
+
+# Add PCSE to Main Model ----
+res.po1<- TFUN.NOE.CBRT.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po1,cluster="time")
+ct.time1     <- coeftest(res.po1,vcov=res.BKtime1)
+res.po1$vcov <- res.BKtime1
+
+res.po2<- TFUN.NOE.CORE.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po2,cluster="time")
+ct.time1     <- coeftest(res.po2,vcov=res.BKtime1)
+res.po2$vcov <- res.BKtime1
+
+res.po3<- TFUN.NOE.CASH.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po3,cluster="time")
+ct.time1     <- coeftest(res.po3,vcov=res.BKtime1)
+res.po3$vcov <- res.BKtime1
+
+
+
+res.po9<- TFUN.NOE.CBRT.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po9,cluster="time")
+ct.time1     <- coeftest(res.po9,vcov=res.BKtime1)
+res.po9$vcov <- res.BKtime1
+
+res.po10<- TFUN.NOE.CORE.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po10,cluster="time")
+ct.time1     <- coeftest(res.po10,vcov=res.BKtime1)
+res.po10$vcov <- res.BKtime1
+
+res.po11<- TFUN.NOE.CASH.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po11,cluster="time")
+ct.time1     <- coeftest(res.po11,vcov=res.BKtime1)
+res.po11$vcov <- res.BKtime1
+
+
+
+ff1<-res.po1
+ff2<-res.po2
+ff3<-res.po3
+ff9<-res.po9
+ff10<-res.po10
+ff11<-res.po11
+
+
+# Print Main Model----
+stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock/GDP",
+                                "Log FDI flow/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA ",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_FE_1_GDP.tex")
+
+
+
+
+#2FE####
+
+# Add Time and Two Way Fixed Effects ----
+
+# CBRT
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Core
+form1   <- core ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Cash
+form1   <- cash ~ Lag_log_UN_FDI_stock_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1 <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# CBRT_Flow
+form1   <- LRI_Total_W2_5 ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CBRT.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# Core_Flow
+form1   <- core ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CORE.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+# Cash_Flow
+form1   <- cash ~ Lag_log_UN_FDI_flow_pgdp + Lag_logtrade +Lag_logGDPpc_diff + Lag_logpopulation + Lag_polity2 + wb_region + Lag_confl
+TFUN.NOE.CASH.l1.wb.POLS1_F <- plm(form1 ,model="within",effect = "twoways",index=c("country","year"),data=df_main)
+
+
+# Add PCSE to Main Model ----
+res.po1<- TFUN.NOE.CBRT.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po1,cluster="time")
+ct.time1     <- coeftest(res.po1,vcov=res.BKtime1)
+res.po1$vcov <- res.BKtime1
+
+res.po2<- TFUN.NOE.CORE.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po2,cluster="time")
+ct.time1     <- coeftest(res.po2,vcov=res.BKtime1)
+res.po2$vcov <- res.BKtime1
+
+res.po3<- TFUN.NOE.CASH.l1.wb.POLS1
+res.BKtime1  <- vcovBK(x=res.po3,cluster="time")
+ct.time1     <- coeftest(res.po3,vcov=res.BKtime1)
+res.po3$vcov <- res.BKtime1
+
+
+res.po9<- TFUN.NOE.CBRT.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po9,cluster="time")
+ct.time1     <- coeftest(res.po9,vcov=res.BKtime1)
+res.po9$vcov <- res.BKtime1
+
+res.po10<- TFUN.NOE.CORE.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po10,cluster="time")
+ct.time1     <- coeftest(res.po10,vcov=res.BKtime1)
+res.po10$vcov <- res.BKtime1
+
+res.po11<- TFUN.NOE.CASH.l1.wb.POLS1_F
+res.BKtime1  <- vcovBK(x=res.po11,cluster="time")
+ct.time1     <- coeftest(res.po11,vcov=res.BKtime1)
+res.po11$vcov <- res.BKtime1
+
+
+ff1<-res.po1
+ff2<-res.po2
+ff3<-res.po3
+ff9<-res.po9
+ff10<-res.po10
+ff11<-res.po11
+
+# Print Main Model----
+stargazer(ff1,ff2,ff3,ff9,ff10,ff11,
+          star.cutoffs = c(0.1, 0.05, 0.01),
+          report = c("vc*s"), se = NULL , float=F,
+          title = "Pooled OLS Regression on Labour Rights Indices for Developing Countries with Panel Corrected SE, Lag = 1 Year",
+          dep.var.labels=c("Overall","Collective","Outcome","Overall","Collective","Outcome"),
+          type = "latex",order=c(1:6,12,7:11,13),
+          covariate.labels = c( "Log FDI stock/GDP",
+                                "Log FDI flow/GDP",
+                                "Log Trade",
+                                "Log GDP Growth",
+                                "Log Population", 
+                                "Democracy",
+                                "Conflict",
+                                "ECA",
+                                "LAC",
+                                "MENA",
+                                "SA",
+                                "SSA",
+                                "Constant"),
+          style = "commadefault",decimal.mark=".",out="regression/final_regression_2FE_1_GDP.tex")
 
 
 
