@@ -17,7 +17,7 @@ To construct our dependent variable, we use the Labour Regulation Index (LRI) da
 Acknowledgements:
 We thank Simon Deakin from the Centre for Business Research at Cambridge University for providing and explaining the raw data. 
 
-We also would like to thank Rod Abouharb, Tim  Büthe, Cindy Cheng, Josepha Hoppe, Tobias Rommel, Marcel Schliebs, Krishna Vadlamannati as well as workshop participants at the Hochschule für Politik München IR  Research  Group, the Conflict \& Change Group at UCL, the APSA Annual Meeting 2020, the Swiss Political Science Association Conference 2020, and the anonymous reviewers of this paper for valuable comments.
+We also would like to thank Rod Abouharb, Tim  Büthe, Cindy Cheng, Josepha Hoppe, Erica Owen, Amy Pond, Tobias Rommel, Marcel Schliebs, Krishna Vadlamannati as well as workshop participants at the Hochschule für Politik München IR  Research  Group, the Conflict \& Change Group at UCL, the APSA Annual Meeting 2020, the Swiss Political Science Association Conference 2020, and the anonymous reviewers of this paper for valuable comments.
 
 
 Cite the work: 
