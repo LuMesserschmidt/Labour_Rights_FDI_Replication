@@ -7,20 +7,6 @@
 # LRI (contains raw data about Labour Rights)
 # FDI Data from UNCTAD
 
-# Packages: 
-#library(tidyverse)
-#library(magrittr)
-#library(ggiraph)
-#library(stargazer) 
-#library(foreign)
-#library(ggthemes)
-#library(readxl)
-#library(bit64)
-#library(data.table)
-#library(plm)
-#library(rms) 
-#library(lmtest)
-#library(pwr)
 
 
 #--------------
