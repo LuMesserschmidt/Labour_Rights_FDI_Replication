@@ -22,7 +22,7 @@ We also would like to thank Rod Abouharb, Tim  Büthe, Cindy Cheng, Josepha Hopp
 
 Cite the work: 
 
-Please cite the paper and the outcome & cash labour rights as:
+Please cite the WORKING PAPER and the outcome & cash labour rights as:
 
 Messerschmidt, L., & Janz, N. (2020). Unravelling the'race to the bottom'argument: How does FDI affect different types of labour rights? (No. 05). TUM School of Governance at the Technical University of Munich.
 
